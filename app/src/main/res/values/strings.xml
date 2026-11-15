@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">Chef Express</string>
+    <string name="nav_discover">Explorar</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="hero_badge">Bistrô Digital</string>
+    <string name="hero_title">Cozinhe com precisão, mesmo offline.</string>
+    <string name="hero_subtitle">Receitas curadas do mundo todo salvas no seu bolso.</string>
+    <string name="search_placeholder">Buscar receitas, ingredientes ou pratos…</string>
+    <string name="category_all">Todas</string>
+    <string name="chef_surprise">Sugestão do Chef</string>
+    <string name="sync_now">Sincronizar</string>
+    <string name="offline_banner_title">Modo Offline ativo</string>
+    <string name="offline_banner_subtitle">Exibindo receitas em cache local (Room)</string>
+    <string name="favorites_title">Livro de Receitas</string>
+    <string name="favorites_subtitle">Suas receitas salvas e disponíveis sem internet</string>
+    <string name="empty_recipes_title">Nenhuma receita encontrada</string>
+    <string name="empty_recipes_desc">Tente outro termo de busca, selecione outra categoria ou sincronize quando estiver conectado.</string>
+    <string name="empty_favorites_title">Seu livro está vazio</string>
+    <string name="empty_favorites_desc">Toque no coração em qualquer receita para guardá-la aqui e acessar seus ingredientes mesmo sem internet.</string>
+    <string name="error_load_title">Ops, algo deu errado na cozinha</string>
+    <string name="retry">Tentar novamente</string>
+    <string name="clear_filters">Limpar filtros</string>
+    <string name="ingredients_title">Ingredientes</string>
+    <string name="instructions_title">Modo de Preparo</string>
+    <string name="timer_title">Timer de Cozinha</string>
+    <string name="cached_offline_badge">Disponível Offline</string>
+    <string name="back">Voltar</string>
+    <string name="favorite_add">Adicionar aos favoritos</string>
+    <string name="favorite_remove">Remover dos favoritos</string>
+    <string name="open_video">Assistir preparo</string>
+    <string name="source_label">Fonte original</string>
+    <string name="loading_recipes">Preparando receitas…</string>
+    <string name="loading_detail">Aquecendo o fogão…</string>
+</resources>
