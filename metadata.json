@@ -1,6 +1,0 @@
-{
-  "name": "Chef Express",
-  "description": "Aplicativo Android de receitas culinárias Offline-First com Clean Architecture, Jetpack Compose, Room, Retrofit e Koin.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
