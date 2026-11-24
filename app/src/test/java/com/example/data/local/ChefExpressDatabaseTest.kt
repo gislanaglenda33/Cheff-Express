@@ -45,11 +45,11 @@ class ChefExpressDatabaseTest {
         val all = recipeDao.observeRecipes("", null).first()
         assertEquals(5, all.size)
 
-        val pastaOnly = recipeDao.observeRecipes("", "Pasta").first()
+        val pastaOnly = recipeDao.observeRecipes("", "Massas").first()
         assertEquals(1, pastaOnly.size)
-        assertEquals("Lasagne", pastaOnly.first().name)
+        assertEquals("Lasanha Clássica à Bolonhesa", pastaOnly.first().name)
 
-        val garlicSearch = recipeDao.observeRecipes("Garlic", null).first()
+        val garlicSearch = recipeDao.observeRecipes("Alho", null).first()
         assertTrue(garlicSearch.isNotEmpty())
 
         recipeDao.updateFavorite("52844", true)

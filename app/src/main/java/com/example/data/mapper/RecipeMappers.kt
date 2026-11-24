@@ -38,11 +38,16 @@ object RecipeMappers {
         val checkedLookup = existingIngredients.associate { it.name.lowercase() to it.isChecked }
 
         val mergedIngredientsJson = if (hasFullDetails) {
-            val mapped = extractIngredientPairs().map { (name, measure) ->
+            val mapped = extractIngredientPairs().map { (rawName, rawMeasure) ->
+                val localizedName = CulinaryPtBrLocalizer.translateIngredient(rawName)
+                val localizedMeasure = CulinaryPtBrLocalizer.translateMeasure(rawMeasure)
+                val wasChecked = checkedLookup[localizedName.lowercase()]
+                    ?: checkedLookup[rawName.lowercase()]
+                    ?: false
                 IngredientLocalModel(
-                    name = name,
-                    measure = measure,
-                    isChecked = checkedLookup[name.lowercase()] ?: false
+                    name = localizedName,
+                    measure = localizedMeasure,
+                    isChecked = wasChecked
                 )
             }
             encodeIngredients(mapped)
@@ -51,18 +56,28 @@ object RecipeMappers {
         }
 
         val resolvedTagsCsv = if (!strTags.isNullOrBlank()) {
-            strTags
+            strTags.split(",")
+                .map { CulinaryPtBrLocalizer.translateTag(it) }
+                .filter { it.isNotBlank() }
+                .joinToString(",")
         } else {
             existing?.tagsCsv.orEmpty()
         }
 
+        val resolvedCategory = strCategory?.takeIf { it.isNotBlank() }
+            ?.let { CulinaryPtBrLocalizer.translateCategory(it) }
+            ?: existing?.category?.takeIf { it.isNotBlank() }
+            ?: fallbackCategory?.let { CulinaryPtBrLocalizer.translateCategory(it) }.orEmpty()
+
+        val resolvedArea = strArea?.takeIf { it.isNotBlank() }
+            ?.let { CulinaryPtBrLocalizer.translateArea(it) }
+            ?: existing?.area.orEmpty()
+
         return RecipeEntity(
             id = idMeal,
             name = strMeal.trim(),
-            category = strCategory?.takeIf { it.isNotBlank() }
-                ?: existing?.category?.takeIf { it.isNotBlank() }
-                ?: fallbackCategory.orEmpty(),
-            area = strArea?.takeIf { it.isNotBlank() } ?: existing?.area.orEmpty(),
+            category = resolvedCategory,
+            area = resolvedArea,
             instructions = if (hasFullDetails) strInstructions.orEmpty().trim() else existing?.instructions.orEmpty(),
             thumbnailUrl = strMealThumb?.takeIf { it.isNotBlank() } ?: existing?.thumbnailUrl.orEmpty(),
             youtubeUrl = strYoutube?.takeIf { it.isNotBlank() } ?: existing?.youtubeUrl,
@@ -106,7 +121,7 @@ object RecipeMappers {
 
     fun CategoryDto.toEntity(): CategoryEntity = CategoryEntity(
         id = idCategory,
-        name = strCategory.trim(),
+        name = CulinaryPtBrLocalizer.translateCategory(strCategory),
         thumbnailUrl = strCategoryThumb.orEmpty(),
         description = strCategoryDescription.orEmpty().trim()
     )

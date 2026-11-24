@@ -12,27 +12,29 @@ Na cozinha, a perda de conectividade ou oscilações de Wi-Fi frequentemente int
 
 ## 2. Funcionalidades Implementadas
 
-- **Exploração e Busca de Receitas:** Listagem de pratos internacionais com busca por nome ou ingrediente (com *debounce* para evitar chamadas excessivas de rede) e filtragem por categoria culinária.
-- **Sugestão do Chef:** Sorteio de uma receita aleatória (`random.php` quando online ou seleção aleatória do cache local quando offline).
+- **Exploração e Busca de Receitas:** Listagem de pratos internacionais com filtragem instantânea local e pesquisa remota com *debounce* de 400 ms (disparada a partir de 2 caracteres), além de filtros por categoria culinária.
+- **Sugestão do Chef:** Sorteio de uma receita aleatória (`random.php` quando online ou seleção aleatória do cache local via Room quando offline).
 - **Detalhes da Receita:** Exibição de imagem em alta resolução, categoria, origem culinária, tags, link opcional de vídeo no YouTube e modo de preparo estruturado em etapas numeradas.
-- **Checklist Interativo Persistente:** Marcação de ingredientes já separados, salva localmente no banco Room por receita.
-- **Favoritos (Livro de Receitas Offline):** Gerenciamento de receitas favoritas em aba dedicada, com filtro próprio e estado vazio ilustrado.
-- **Timer de Cozinha Integrado:** Contagem regressiva executada via Coroutines diretamente na tela de detalhes (atalhos de 5, 10, 15 min e +1 min).
-- **Monitoramento de Conectividade:** Banner dinâmico indicando Modo Offline e botão de sincronização manual quando a rede é restabelecida.
-- **Layout Adaptativo & Material 3:** Tema editorial *"Bistrô Moderno"* (claro e escuro), `NavigationBar` em telas compactas e `NavigationRail` em telas médias/expandidas.
+- **Checklist Interativo Persistente:** Marcação de ingredientes já separados, salva localmente no banco Room por receita e preservada entre sincronizações.
+- **Favoritos (Livro de Receitas Offline):** Gerenciamento de receitas favoritas em aba dedicada, com filtro próprio por nome/categoria/origem e estado vazio ilustrado.
+- **Timer de Cozinha Integrado:** Contagem regressiva executada via Coroutines diretamente na tela de detalhes (atalhos de 5, 10, 15 min, incremento +1 min, iniciar/pausar e reiniciar).
+- **Localização em Português (PT-BR):** Toda a interface, catálogo de contingência inicial (`InitialRecipeSeed`), categorias, origens culinárias, tags, unidades de medida e ingredientes frequentes traduzidos via `CulinaryPtBrLocalizer`, com conversão reversa de categoria para consultas à API.
+- **Monitoramento de Conectividade:** Banner dinâmico (`OfflineStatusBanner`) indicando Modo Offline e botão de sincronização manual na tela Explorar.
+- **Layout Adaptativo & Material 3:** Tema editorial *"Bistrô Moderno"* (claro e escuro) com fontes locais (`Playfair Display` e `Plus Jakarta Sans`), `NavigationBar` em telas compactas e `NavigationRail` em telas médias/expandidas.
 
 ---
 
 ## 3. Tecnologias e Bibliotecas Utilizadas
 
-- **Linguagem:** Kotlin 2.2.10
-- **UI:** Jetpack Compose + Material Design 3 + WindowSizeClass + Navigation Compose (rotas `@Serializable`)
-- **Injeção de Dependências:** Koin (`koin-android`, `koin-androidx-compose`)
-- **Assincronismo & Reatividade:** Kotlin Coroutines, `Flow` e `StateFlow` (`collectAsStateWithLifecycle`)
-- **Consumo de API REST:** Retrofit 2.12 + OkHttp + Moshi (`moshi-kotlin-codegen`)
-- **Persistência Local:** Room 2.7 + KSP
-- **Carregamento de Imagens:** Coil (`coil-compose`) com cache em memória e disco
-- **Testes:** JUnit4, `kotlinx-coroutines-test`, Robolectric 4.16.1, `androidx.compose.ui:ui-test-junit4`
+- **Linguagem:** Kotlin `2.2.10` (Java 11 bytecode target)
+- **Android SDK:** `compileSdk 36` / `targetSdk 36` / `minSdk 24` / AGP `9.1.1` / KSP `2.3.5`
+- **UI & Navegação:** Jetpack Compose (BOM `2024.09.00`), Material Design 3, `WindowSizeClass`, Navigation Compose `2.8.9` (rotas `@Serializable` com `kotlinx-serialization-json 1.8.1`)
+- **Injeção de Dependências:** Koin `4.0.2` (`koin-android`, `koin-androidx-compose`)
+- **Assincronismo & Reatividade:** Kotlin Coroutines `1.10.2`, `Flow` e `StateFlow` (`collectAsStateWithLifecycle`)
+- **Consumo de API REST:** Retrofit `2.12.0`, OkHttp `4.10.0` (com `HttpLoggingInterceptor`) e Moshi `1.15.2` (`moshi-kotlin`, `moshi-kotlin-codegen` via KSP)
+- **Persistência Local:** Room `2.7.0` (`room-runtime`, `room-ktx`, `room-compiler`)
+- **Carregamento de Imagens:** Coil `2.7.0` (`coil-compose`) com cache em memória e disco
+- **Testes:** JUnit `4.13.2`, `kotlinx-coroutines-test 1.10.2`, Robolectric `4.16.1`, `androidx.compose.ui:ui-test-junit4`
 
 ---
 
@@ -40,13 +42,14 @@ Na cozinha, a perda de conectividade ou oscilações de Wi-Fi frequentemente int
 
 - **Serviço:** [TheMealDB API](https://www.themealdb.com/api.php)
 - **URL Base:** `https://www.themealdb.com/api/json/v1/1/`
-- **Justificativa da Escolha:** API pública gratuita, sem exigência de credenciais proprietárias para leitura de catálogo, com dados culinários estruturados (categorias, origem, fotos em alta resolução, até 20 ingredientes/medidas por prato e instruções completas).
-- **Endpoints Consumidos:**
-  - `GET categories.php` — Lista de categorias culinárias.
-  - `GET search.php?s={query}` — Busca de receitas por nome e carregamento inicial do catálogo.
-  - `GET filter.php?c={category}` — Filtragem de receitas por categoria.
-  - `GET lookup.php?i={id}` — Consulta detalhada de uma receita específica.
-  - `GET random.php` — Sugestão aleatória de receita.
+- **Autenticação:** Não requer chave de API privada para os endpoints públicos utilizados (não há necessidade de configurar segredo no `.env` para o funcionamento do catálogo).
+- **Justificativa da Escolha:** API pública gratuita e estável, com dados culinários estruturados (categorias, origem, fotos em alta resolução, até 20 pares de ingredientes/medidas por prato e instruções completas), ideal para demonstrar paginação/filtragem, hidratação sob demanda e sincronização Offline-First.
+- **Endpoints Consumidos (`TheMealDbApi.kt`):**
+  - `GET categories.php` — Lista todas as categorias culinárias.
+  - `GET search.php?s={query}` — Busca receitas por nome (`s=""` para o lote inicial e `query.trim().length >= 2` na busca remota).
+  - `GET filter.php?c={category}` — Filtra resumos de receitas por categoria (recebe chave em inglês convertida por `CulinaryPtBrLocalizer.toApiCategoryKey`).
+  - `GET lookup.php?i={id}` — Consulta detalhada de uma receita específica para hidratação completa.
+  - `GET random.php` — Obtém uma receita aleatória para a "Sugestão do Chef".
 
 ---
 
@@ -54,62 +57,152 @@ Na cozinha, a perda de conectividade ou oscilações de Wi-Fi frequentemente int
 
 O projeto segue rigorosamente a regra de dependência (`Presentation -> Domain <- Data`):
 
-```text
-app/src/main/java/com/example/
-├── domain/                   # Regras de negócio puras (sem dependências Android)
-│   ├── model/                # Recipe, Category, IngredientItem, AppError, SyncOutcome
-│   ├── repository/           # Contratos RecipeRepository e NetworkMonitor
-│   └── usecase/              # Casos de uso encapsulados
-├── data/                     # Implementações de acesso a dados
-│   ├── local/                # ChefExpressDatabase, Entities, DAOs e InitialRecipeSeed
-│   ├── remote/               # TheMealDbApi e DTOs Moshi
-│   ├── mapper/               # Conversões DTO <-> Entity <-> Domain
-│   ├── network/              # AndroidNetworkMonitor (ConnectivityManager)
-│   └── repository/           # OfflineFirstRecipeRepositoryImpl
-├── presentation/             # Interface Jetpack Compose + MVVM
-│   ├── home/                 # HomeScreen, HomeViewModel, HomeUiState
-│   ├── favorites/            # FavoritesScreen, FavoritesViewModel, FavoritesUiState
-│   ├── detail/               # RecipeDetailScreen, RecipeDetailViewModel, KitchenTimerState
-│   ├── components/           # Cards, banner offline e estados Loading/Empty/Error
-│   └── navigation/           # ChefExpressNavGraph (rotas tipadas e shell adaptativo)
-├── di/                       # Módulos Koin (dataModule, domainModule, presentationModule)
-└── ui/theme/                 # Cores, Shapes e Tipografia (Playfair Display + Plus Jakarta Sans)
-```
+- **`domain/` (Kotlin puro):** contém as entidades (`Recipe`, `Category`, `IngredientItem`, `AppError`, `SyncOutcome`), os contratos (`RecipeRepository`, `NetworkMonitor`) e os 8 casos de uso (`RecipeUseCases.kt`), sem qualquer dependência de Android, Room ou Retrofit.
+- **`data/` (implementações e acesso a dados):** implementa os contratos de `domain` utilizando Room (`ChefExpressDatabase`, `RecipeDao`, `CategoryDao`), Retrofit/Moshi (`TheMealDbApi`, `TheMealDbDto`), tradução/merge (`CulinaryPtBrLocalizer`, `RecipeMappers`), monitoramento de rede (`AndroidNetworkMonitor`) e `OfflineFirstRecipeRepositoryImpl`.
+- **`presentation/` (Jetpack Compose + MVVM):** consome exclusivamente os casos de uso e `NetworkMonitor` por meio de `HomeViewModel`, `FavoritesViewModel` e `RecipeDetailViewModel`, expondo estados imutáveis (`Loading`, `Success`, `Empty`, `Error`) e gerenciando a navegação em `ChefExpressNavGraph`.
+- **`di/` e `ui/theme/`:** organizam os módulos Koin (`dataModule`, `domainModule`, `presentationModule`) e o tema Material Design 3 (*"Bistrô Moderno"*).
 
 ---
 
 ## 6. Estratégia Offline-First e Sincronização
 
 1. **Single Source of Truth (SSOT):** Todas as telas observam `Flow` emitidos diretamente pelo Room (`RecipeDao` e `CategoryDao`), nunca consumindo DTOs da API diretamente na UI.
-2. **Sincronização Não-Destrutiva:** Ao receber dados da API, `RecipeMappers` mescla os registros preservando o estado local do usuário (`isFavorite`, itens marcados no checklist e instruções previamente baixadas).
-3. **Contingência de Primeira Execução:** Se o aplicativo for aberto pela primeira vez completamente sem internet e com o banco vazio, `InitialRecipeSeed` popula um conjunto inicial de receitas clássicas para garantir funcionamento imediato.
-4. **Hidratação Sob Demanda:** Receitas listadas via filtro de categoria (`filter.php`) são hidratadas automaticamente com detalhes completos via `lookup.php` ao abrir a tela de detalhes quando online.
+2. **Sincronização Não-Destrutiva:** Ao receber dados da API, `RecipeMappers.toEntity` mescla os registros preservando o estado local do usuário (`isFavorite`, itens marcados no checklist e instruções/detalhes previamente baixados).
+3. **Contingência de Primeira Execução:** Se o aplicativo for aberto pela primeira vez completamente sem internet e com o banco vazio, `InitialRecipeSeed` popula 5 categorias e 5 receitas completas em Português (PT-BR) no Room (versão 2) para garantir funcionamento imediato.
+4. **Hidratação Sob Demanda:** Receitas listadas apenas em resumo via filtro de categoria (`filter.php`) são hidratadas automaticamente com detalhes completos via `lookup.php` ao abrir a tela de detalhes quando online.
+5. **Fallback da Sugestão do Chef:** Sem conexão ou em caso de erro de rede, `getRandomRecipeId()` sorteia uma receita já armazenada no Room via `ORDER BY RANDOM() LIMIT 1`.
 
 ---
 
-## 7. Documentação SDD no Repositório
+## 7. Organização dos Diretórios
 
-- [`SPECIFICATION.md`](SPECIFICATION.md) — Requisitos funcionais, não funcionais e proposta do aplicativo.
-- [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md) — Planejamento arquitetural, API REST e estratégia Offline-First.
-- [`TASKS.md`](TASKS.md) — Decomposição incremental das etapas de desenvolvimento.
-- [`TEST_RESULTS.md`](TEST_RESULTS.md) — Relatório detalhado dos testes automatizados executados.
-
+```text
+/
+├── app/
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/
+│       │   ├── AndroidManifest.xml
+│       │   ├── java/com/example/
+│       │   │   ├── ChefExpressApp.kt
+│       │   │   ├── MainActivity.kt
+│       │   │   ├── di/AppModules.kt
+│       │   │   ├── domain/
+│       │   │   │   ├── model/Recipe.kt
+│       │   │   │   ├── repository/RecipeRepository.kt
+│       │   │   │   └── usecase/RecipeUseCases.kt
+│       │   │   ├── data/
+│       │   │   │   ├── local/
+│       │   │   │   │   ├── ChefExpressDatabase.kt
+│       │   │   │   │   ├── InitialRecipeSeed.kt
+│       │   │   │   │   ├── RecipeDao.kt
+│       │   │   │   │   └── RecipeEntities.kt
+│       │   │   │   ├── remote/
+│       │   │   │   │   ├── TheMealDbApi.kt
+│       │   │   │   │   └── TheMealDbDto.kt
+│       │   │   │   ├── mapper/
+│       │   │   │   │   ├── CulinaryPtBrLocalizer.kt
+│       │   │   │   │   └── RecipeMappers.kt
+│       │   │   │   ├── network/AndroidNetworkMonitor.kt
+│       │   │   │   └── repository/OfflineFirstRecipeRepositoryImpl.kt
+│       │   │   ├── presentation/
+│       │   │   │   ├── components/ChefComponents.kt
+│       │   │   │   ├── home/{HomeScreen.kt, HomeViewModel.kt}
+│       │   │   │   ├── favorites/{FavoritesScreen.kt, FavoritesViewModel.kt}
+│       │   │   │   ├── detail/{RecipeDetailScreen.kt, RecipeDetailViewModel.kt}
+│       │   │   │   └── navigation/ChefExpressNavGraph.kt
+│       │   │   └── ui/theme/{Color.kt, Theme.kt, Type.kt}
+│       │   └── res/ (drawable, font, mipmap-*, values, xml)
+│       └── test/java/com/example/
+│           ├── ExampleUnitTest.kt
+│           ├── ExampleRobolectricTest.kt
+│           ├── domain/usecase/RecipeUseCasesTest.kt
+│           ├── data/local/ChefExpressDatabaseTest.kt
+│           ├── data/mapper/RecipeMappersTest.kt
+│           ├── data/repository/OfflineFirstRecipeRepositoryTest.kt
+│           └── presentation/{ChefExpressUiTest.kt, HomeViewModelTest.kt, RecipeDetailViewModelTest.kt}
+├── evidencias/               # Pasta reservada para capturas reais de execução
+├── gradle/libs.versions.toml
+├── SPECIFICATION.md          # Especificação, regras de negócio e critérios de aceitação
+├── ARCHITECTURE_PLAN.md      # Planejamento arquitetural inicial preservado
+├── PLANNING.md               # Planejamento técnico detalhado atualizado
+├── TASKS.md                  # Decomposição de tarefas e tabela geral de progresso
+└── TEST_RESULTS.md           # Relatório detalhado de compilação e execução de testes
+```
 
 ---
 
-### Evidências dos Testes
-A execução completa da suíte (`gradle :app:testDebugUnitTest :app:assembleDebug`) obteve **18/18 testes aprovados (0 falhas)** e gerou o APK de depuração em `app/build/outputs/apk/debug/app-debug.apk`. Consulte o relatório detalhado em [`TEST_RESULTS.md`](TEST_RESULTS.md), cobrindo:
-- Casos de uso da camada `domain` (`RecipeUseCasesTest` — 4/4)
-- Mappers e preservação de estado offline (`RecipeMappersTest` — 2/2)
-- Repositório Offline-First (`OfflineFirstRecipeRepositoryTest` — 3/3)
-- Estados reativos de `HomeViewModel` e `RecipeDetailViewModel` (`HomeViewModelTest` — 2/2, `RecipeDetailViewModelTest` — 2/2)
-- Consultas SQL do Room (`ChefExpressDatabaseTest` — 1/1)
-- Fluxos de UI e recursos (`ChefExpressUiTest` — 2/2, `ExampleRobolectricTest` — 1/1, `ExampleUnitTest` — 1/1)
+## 8. Pré-requisitos
+
+- **JDK 11 ou superior** (compatível com `JavaVersion.VERSION_11` configurado em `app/build.gradle.kts`).
+- **Android Studio** (recomendado para execução em emulador/dispositivo) ou **Gradle 9.3.1** (`gradle` instalado no PATH — este repositório não inclui script `./gradlew` na raiz, utilizando `gradle/wrapper/gradle-wrapper.properties`).
+- **Android SDK 36** (`compileSdk 36`, `targetSdk 36`, `minSdk 24`).
+- Conexão com a internet para download de dependências na primeira compilação e para sincronização online com a API TheMealDB.
 
 ---
 
-## 8. Limitações Conhecidas
+## 9. Como Configurar e Executar o Projeto
 
-- O conteúdo textual das receitas retornado pela API pública **TheMealDB** é originalmente em inglês, enquanto toda a interface, navegação e mensagens do aplicativo estão em português (PT-BR).
-- O timer de cozinha integrado funciona enquanto o `ViewModel` está ativo na tela de detalhes, não utilizando alarme em segundo plano (`ForegroundService`) para manter permissões mínimas.
-- Capturas de tela manuais em dispositivo físico/emulador local ficam a critério do avaliador durante a inspeção do APK gerado (`app-debug.apk`), uma vez que a validação automatizada em ambiente headless ocorre via Robolectric.
+1. **Clonar ou importar o projeto:**
+   - Abra a pasta raiz do projeto diretamente no **Android Studio** (*File > Open*), aguardando a sincronização do Gradle.
+   - Não é necessária configuração de chaves em `.env` ou `local.properties` para o consumo da API TheMealDB.
+2. **Compilar o APK de depuração via terminal:**
+   ```bash
+   gradle :app:assembleDebug
+   ```
+   O APK será gerado em `app/build/outputs/apk/debug/app-debug.apk`.
+3. **Executar em dispositivo ou emulador:**
+   - No Android Studio, selecione um dispositivo físico (com depuração USB ativa) ou um emulador Android (API 24+) e clique em **Run (`app`)**.
+
+---
+
+## 10. Como Executar os Testes Unitários
+
+- **Executar toda a suíte de testes unitários e Robolectric:**
+  ```bash
+  gradle :app:testDebugUnitTest
+  ```
+- **Executar apenas os testes unitários JVM puros (sem dependência de artefatos externos do Robolectric):**
+  ```bash
+  gradle :app:testDebugUnitTest \
+    --tests "com.example.ExampleUnitTest" \
+    --tests "com.example.domain.*" \
+    --tests "com.example.data.mapper.*" \
+    --tests "com.example.data.repository.*" \
+    --tests "com.example.presentation.*ViewModelTest" \
+    --console=plain
+  ```
+
+---
+
+## 11. Resultados dos Testes e Documentação SDD
+
+- **Suíte Unitária JVM (pós-atualização PT-BR):** **16/16 testes aprovados** (0 falhas), cobrindo `RecipeUseCasesTest` (4/4), `RecipeMappersTest` (3/3), `OfflineFirstRecipeRepositoryTest` (4/4), `HomeViewModelTest` (2/2), `RecipeDetailViewModelTest` (2/2) e `ExampleUnitTest` (1/1).
+- **Suíte Robolectric (Room + Compose UI):** Os 3 arquivos de teste Robolectric (`ChefExpressDatabaseTest`, `ChefExpressUiTest`, `ExampleRobolectricTest` — 4 casos no total) passaram na execução inicial (15/11/2026) e compilam sem erros após a atualização PT-BR (`compileDebugUnitTestKotlin`), porém a **reexecução em tempo de execução pós-PT-BR encontra-se pendente/bloqueada neste runner** por erro externo `HTTP 429` do Maven Central ao baixar `org.robolectric:android-all-instrumented:16-robolectric-13921718-i7.jar`.
+- **Relatório completo:** consulte [`TEST_RESULTS.md`](TEST_RESULTS.md).
+
+Documentação complementar de SDD:
+- [`SPECIFICATION.md`](SPECIFICATION.md)
+- [`PLANNING.md`](PLANNING.md)
+- [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md)
+- [`TASKS.md`](TASKS.md)
+
+---
+
+## 12. Limitações Conhecidas
+
+- Textos extensos de instruções de preparo (`strInstructions`) retornados dinamicamente pela API pública **TheMealDB** são exibidos no idioma original retornado pelo servidor (inglês), enquanto UI, seed offline, categorias, origens, tags, unidades de medida e ingredientes frequentes estão em Português (PT-BR).
+- O timer de cozinha integrado funciona enquanto o `RecipeDetailViewModel` está ativo na tela de detalhes, sem serviço em segundo plano ou notificações (`ForegroundService` / `POST_NOTIFICATIONS`).
+- Fotos de receitas ainda não visualizadas quando online dependem do cache prévio do Coil para aparecerem sem internet (exibindo imagem editorial de placeholder quando indisponíveis offline).
+- A reexecução runtime da suíte Robolectric pós-PT-BR depende de rede desbloqueada para o Maven Central (bloqueio HTTP 429 registrado no contêiner).
+- A pasta `evidencias/` encontra-se vazia aguardando capturas de tela obtidas em execução manual num emulador ou dispositivo físico (o ambiente headless atual não possui emulador/ADB).
+
+---
+
+## 13. Funcionalidades Ainda Não Implementadas
+
+- **Alarme/Notificação em Segundo Plano para o Timer:** disparo sonoro ou notificação persistente ao sair da tela de detalhes ou bloquear o aparelho.
+- **Tradução Dinâmica de Instruções Extensas da API:** tradução automática de parágrafos completos de modo de preparo baixados da TheMealDB.
+- **Cobertura de Testes Complementar:** testes unitários dedicados para `FavoritesViewModel` e `AndroidNetworkMonitor`, além de testes de contrato HTTP com `MockWebServer` para `TheMealDbApi`.
+- **Sincronização em Nuvem / Contas de Usuário:** o aplicativo é estritamente local por dispositivo (Room), sem autenticação ou backup remoto entre aparelhos.
+- **Publicação Remota e Capturas Finais:** envio do histórico para repositório remoto no GitHub e preenchimento de `evidencias/` com capturas de execução real online e offline.

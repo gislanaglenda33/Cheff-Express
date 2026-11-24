@@ -1,63 +1,68 @@
 # Relatório de Testes — Chef Express
 
-**Comando executado:**
+**Data da última verificação:** 24/11/2026  
+**Artefato APK gerado:** `app/build/outputs/apk/debug/app-debug.apk` (`BUILD SUCCESSFUL` após atualização PT-BR)
+
+---
+
+## 1. Resumo de Estado dos Testes
+
+| Categoria | Quantidade | Estado Atual | Observação |
+| --- | :---: | --- | --- |
+| **Testes Unitários JVM** | 16 | **Aprovados (16/16)** | Executados com sucesso após a atualização PT-BR |
+| **Testes Robolectric (Room + Compose UI)** | 4 | **Não executados pós-PT-BR (Bloqueio de infraestrutura)** | Aprovados em 15/11 (pré-PT-BR); compilam pós-PT-BR, mas falharam na inicialização do runner em 24/11 por **HTTP 429** do Maven Central |
+| **Testes Instrumentados (`androidTest`) / Dispositivo** | — | **Não executados** | Ambiente sem emulador/ADB disponível |
+| **Lacunas de Cobertura Mapeadas** | — | **Pendentes de implementação** | Ausência de testes dedicados para `FavoritesViewModel`, `AndroidNetworkMonitor` e `MockWebServer` |
+
+---
+
+## 2. Testes Unitários JVM — Aprovados (Pós-atualização PT-BR)
+
+**Comando executado em 24/11/2026:**
 ```bash
-gradle :app:testDebugUnitTest :app:assembleDebug --console=plain
+gradle :app:testDebugUnitTest --tests "com.example.ExampleUnitTest" --tests "com.example.domain.*" --tests "com.example.data.mapper.*" --tests "com.example.data.repository.*" --tests "com.example.presentation.*ViewModelTest" --console=plain
 ```
 
-**Data da execução:** 15/11/2026  
-**Resultado Geral:** **BUILD SUCCESSFUL** — **18 testes executados, 18 aprovados, 0 falhas, 0 ignorados**  
-**Artefato APK gerado:** `app/build/outputs/apk/debug/app-debug.apk` (22 MB)
+**Resultado:** **BUILD SUCCESSFUL** — **16 testes executados, 16 aprovados, 0 falhas**
+
+| Suíte de Teste | Camada / Escopo | Executados | Aprovados | Falhas | Status |
+| --- | --- | :---: | :---: | :---: | --- |
+| `RecipeUseCasesTest` | Domain (Casos de uso e `instructionSteps`) | 4 | 4 | 0 | Aprovado |
+| `RecipeMappersTest` | Data Mapper + `CulinaryPtBrLocalizer` | 3 | 3 | 0 | Aprovado |
+| `OfflineFirstRecipeRepositoryTest` | Data Repository + Mapeamento PT-BR -> API | 4 | 4 | 0 | Aprovado |
+| `HomeViewModelTest` | Presentation ViewModel (`StateFlow` / `HomeEvent`) | 2 | 2 | 0 | Aprovado |
+| `RecipeDetailViewModelTest` | Presentation ViewModel + Timer de Cozinha | 2 | 2 | 0 | Aprovado |
+| `ExampleUnitTest` | Baseline JVM | 1 | 1 | 0 | Aprovado |
+| **Total JVM** | | **16** | **16** | **0** | **Aprovado** |
 
 ---
 
-## 1. Resumo por Suíte de Testes
+## 3. Testes Robolectric (Room + Compose UI) — Não Executados na Reexecução Pós-PT-BR
 
-| Suíte de Teste | Camada / Tipo | Executados | Aprovados | Falhas |
-| --- | --- | :---: | :---: | :---: |
-| `RecipeUseCasesTest` | Domain (Unitário JVM) | 4 | 4 | 0 |
-| `RecipeMappersTest` | Data Mapper (Unitário JVM) | 2 | 2 | 0 |
-| `OfflineFirstRecipeRepositoryTest` | Data Repository (Unitário + Coroutines) | 3 | 3 | 0 |
-| `ChefExpressDatabaseTest` | Data Room (Robolectric In-Memory SQLite) | 1 | 1 | 0 |
-| `HomeViewModelTest` | Presentation ViewModel (Unitário + StateFlow) | 2 | 2 | 0 |
-| `RecipeDetailViewModelTest` | Presentation ViewModel + Timer | 2 | 2 | 0 |
-| `ChefExpressUiTest` | Presentation UI (Robolectric + Compose Test) | 2 | 2 | 0 |
-| `ExampleRobolectricTest` | Recursos Android (Robolectric) | 1 | 1 | 0 |
-| `ExampleUnitTest` | Baseline JVM | 1 | 1 | 0 |
-| **Total** | | **18** | **18** | **0** |
+**Status de compilação pós-PT-BR (24/11/2026):** As classes abaixo foram atualizadas para o catálogo em Português (PT-BR) e **compilam sem erros** (`kspDebugUnitTestKotlin` e `compileDebugUnitTestKotlin` concluídos com sucesso).
+
+**Bloqueio de execução em 24/11/2026:** Ao executar `gradle :app:testDebugUnitTest`, o runner do Robolectric falhou antes da execução dos testes ao tentar baixar o artefato `org.robolectric:android-all-instrumented:16-robolectric-13921718-i7.jar` no repositório `repo1.maven.org`, recebendo erro **HTTP 429 (Too Many Requests)**. Portanto, os 4 testes abaixo permanecem **pendentes de reexecução runtime pós-PT-BR**.
+
+| Suíte de Teste | Casos | Execução Inicial (15/11, pré-PT-BR) | Situação Atual (24/11, pós-PT-BR) |
+| --- | :---: | --- | --- |
+| `ChefExpressDatabaseTest` | 1 | 1/1 aprovado | Compila; **não executado** (bloqueio HTTP 429 ao baixar SDK Robolectric) |
+| `ChefExpressUiTest` | 2 | 2/2 aprovados | Compila; **não executado** (bloqueio HTTP 429 ao baixar SDK Robolectric) |
+| `ExampleRobolectricTest` | 1 | 1/1 aprovado | Compila; **não executado** (bloqueio HTTP 429 ao baixar SDK Robolectric) |
 
 ---
 
-## 2. Casos Validados
+## 4. Comportamentos Validados na Suíte JVM Pós-PT-BR
 
-### Camada Domain (`RecipeUseCasesTest`)
-- Normalização de busca e categorias em branco em `ObserveRecipesUseCase`.
-- Validação de índice negativo em `ToggleIngredientCheckUseCase`.
-- Delegação de `ToggleFavoriteUseCase` e `GetRandomChefRecipeUseCase`.
-- Limpeza e segmentação de etapas em `Recipe.instructionSteps`.
-
-### Camada Data (`RecipeMappersTest`, `OfflineFirstRecipeRepositoryTest`, `ChefExpressDatabaseTest`)
-- Preservação de estado local (`isFavorite` e ingredientes marcados) ao sincronizar receita completa da API.
-- Proteção contra sobrescrita de detalhes completos quando `filter.php` retorna apenas resumos.
-- Contingência Offline-First: seed inicial no Room quando o app inicia sem internet e retorno `SyncOutcome.OfflineFallback`.
-- Fallback local em `getRandomRecipeId()` quando offline.
-- Consultas SQL reais no `ChefExpressDatabase` (busca por texto/ingrediente, filtro por categoria e favoritos).
-
-### Camada Presentation (`HomeViewModelTest`, `RecipeDetailViewModelTest`, `ChefExpressUiTest`, `ExampleRobolectricTest`)
-- Transições de `HomeUiState` (`Loading` -> `Success` -> `Empty`) com filtragem reativa e emissão de `HomeEvent.NavigateToRecipe`.
-- Alternância reativa de favorito e checklist em `RecipeDetailViewModel`.
-- Contagem regressiva, presets (5/10/15m), incremento (+1m) e reset do timer de cozinha.
-- Renderização de banner offline (`offline_status_banner`) e clique em cards de receita no `HomeScreen`.
-- Rolagem, disparo de timer e marcação de ingredientes no `RecipeDetailScreen`.
-- Verificação do recurso `R.string.app_name == "Chef Express"`.
+- **`CulinaryPtBrLocalizer`:** tradução bidirecional de categorias (`Massas` <-> `Pasta`, `Frutos do Mar` <-> `Seafood`), origens culinárias (`Japonesa`, `Italiana`, etc.), tags e unidades de medida (`col. sopa`, `xícara`).
+- **`RecipeMappers`:** preservação de `isFavorite` e do estado `isChecked` dos ingredientes em atualizações vindas da API, além da proteção para que resumos de `filter.php` não apaguem detalhes previamente baixados.
+- **`OfflineFirstRecipeRepositoryImpl`:** população do `InitialRecipeSeed` no arranque offline (`OfflineFallback`), conversão da categoria selecionada em português (`"Massas"`) para o parâmetro da API TheMealDB (`"Pasta"`), e fallback local de `getRandomRecipeId()`.
+- **Camada `domain` e `presentation`:** normalização de parâmetros nos casos de uso, remoção de prefixos em `Recipe.instructionSteps`, filtros/eventos no `HomeViewModel` e contagem regressiva/reset do timer no `RecipeDetailViewModel`.
 
 ---
 
-## 3. Problemas Identificados e Corrigidos Durante a Validação
+## 5. Testes Pendentes de Implementação ou Ambiente
 
-1. **Reinicialização do Koin em múltiplos testes Robolectric:**  
-   - *Sintoma:* `KoinApplicationAlreadyStartedException` ao executar múltiplas classes de teste Robolectric no mesmo processo JVM.  
-   - *Correção:* Adicionada guarda `if (GlobalContext.getOrNull() == null)` antes de `startKoin` em `ChefExpressApp.onCreate()`.
-2. **Sincronização de animação e rolagem em `ChefExpressUiTest`:**  
-   - *Sintoma:* Elementos fora do viewport inicial em `LazyColumn`/`LazyVerticalGrid` e `AnimatedVisibility` do banner offline exigiam avanço do relógio e scroll explícito.  
-   - *Correção:* Aplicado `composeTestRule.mainClock.advanceTimeBy(500)` e `performScrollToNode(hasTestTag(...))`, resultando em 100% de aprovação.
+- Reexecução completa de `gradle :app:testDebugUnitTest` em ambiente com acesso desbloqueado ao Maven Central (ou cache local de `android-all-instrumented`) para confirmar os 4 testes Robolectric em tempo de execução após a localização PT-BR.
+- Criação de testes unitários para `FavoritesViewModel` e `AndroidNetworkMonitor`.
+- Criação de teste de contrato de serialização/endpoints com `MockWebServer` para `TheMealDbApi`.
+- Validação manual ponta a ponta do APK (`app/build/outputs/apk/debug/app-debug.apk`) em dispositivo físico ou emulador Android, com registro de capturas reais na pasta `evidencias/`.

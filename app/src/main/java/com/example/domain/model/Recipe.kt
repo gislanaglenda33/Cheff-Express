@@ -28,7 +28,7 @@ data class Recipe(
             .map { it.trim() }
             .filter { it.isNotBlank() }
             .map { step ->
-                step.replace(Regex("^(\\d+[.)]\\s*|STEP\\s+\\d+[:.\\s]*)", RegexOption.IGNORE_CASE), "").trim()
+                step.replace(Regex("^(\\d+[.)]\\s*|(?:STEP|PASSO|ETAPA)\\s+\\d+[:.\\s]*)", RegexOption.IGNORE_CASE), "").trim()
             }
             .filter { it.isNotBlank() }
 }

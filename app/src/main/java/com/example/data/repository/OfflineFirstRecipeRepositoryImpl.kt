@@ -130,7 +130,9 @@ class OfflineFirstRecipeRepositoryImpl(
                 return@withContext SyncOutcome.OfflineFallback
             }
             try {
-                val mealsDto = api.filterByCategory(category).meals.orEmpty()
+                val apiCategory = com.example.data.mapper.CulinaryPtBrLocalizer.toApiCategoryKey(category)
+                val localizedCategory = com.example.data.mapper.CulinaryPtBrLocalizer.translateCategory(category)
+                val mealsDto = api.filterByCategory(apiCategory).meals.orEmpty()
                 val now = System.currentTimeMillis()
                 val existingMap = if (mealsDto.isNotEmpty()) {
                     recipeDao.getRecipesByIds(mealsDto.map { it.idMeal }).associateBy { it.id }
@@ -140,7 +142,7 @@ class OfflineFirstRecipeRepositoryImpl(
                 val entities = mealsDto.map { dto ->
                     dto.toEntity(
                         existing = existingMap[dto.idMeal],
-                        fallbackCategory = category,
+                        fallbackCategory = localizedCategory,
                         nowMillis = now
                     )
                 }

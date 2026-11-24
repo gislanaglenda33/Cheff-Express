@@ -12,21 +12,21 @@ import org.junit.Test
 class RecipeMappersTest {
 
     @Test
-    fun `toEntity preserves existing favorite and checked ingredients when refreshing full recipe`() {
+    fun `toEntity preserves existing favorite and checked ingredients and localizes to PT-BR`() {
         val existing = RecipeEntity(
             id = "52771",
             name = "Arrabiata",
-            category = "Vegetarian",
-            area = "Italian",
+            category = "Vegetariano",
+            area = "Italiana",
             instructions = "Old instructions",
             thumbnailUrl = "https://img/old.jpg",
             youtubeUrl = null,
             sourceUrl = null,
-            tagsCsv = "Pasta",
+            tagsCsv = "Massa",
             ingredientsJson = RecipeMappers.encodeIngredients(
                 listOf(
                     IngredientLocalModel("Penne", "400g", isChecked = true),
-                    IngredientLocalModel("Garlic", "2 cloves", isChecked = false)
+                    IngredientLocalModel("Alho", "2 dentes", isChecked = false)
                 )
             ),
             isFavorite = true,
@@ -53,34 +53,36 @@ class RecipeMappersTest {
 
         assertTrue(domain.isFavorite)
         assertEquals("Spicy Arrabiata Penne", domain.name)
+        assertEquals("Vegetariano", domain.category)
+        assertEquals("Italiana", domain.area)
         assertEquals("Boil pasta and simmer sauce.", domain.instructions)
         assertEquals(2, domain.ingredients.size)
         assertTrue(domain.ingredients[0].isChecked)
-        assertEquals("450g", domain.ingredients[0].measure)
-        assertEquals(listOf("Pasta", "Spicy"), domain.tags)
+        assertEquals("Alho", domain.ingredients[1].name)
+        assertEquals("3 dentes", domain.ingredients[1].measure)
+        assertEquals(listOf("Massa", "Picante"), domain.tags)
     }
 
     @Test
     fun `toEntity summary from category filter does not erase existing offline details`() {
         val existing = RecipeEntity(
             id = "52844",
-            name = "Lasagne",
-            category = "Pasta",
-            area = "Italian",
-            instructions = "Bake for 40 minutes.",
+            name = "Lasanha",
+            category = "Massas",
+            area = "Italiana",
+            instructions = "Asse por 40 minutos.",
             thumbnailUrl = "https://img/lasagne.jpg",
             youtubeUrl = null,
             sourceUrl = null,
-            tagsCsv = "Classic",
+            tagsCsv = "Clássico",
             ingredientsJson = RecipeMappers.encodeIngredients(
-                listOf(IngredientLocalModel("Beef", "500g", isChecked = true))
+                listOf(IngredientLocalModel("Carne Moída", "500g", isChecked = true))
             ),
             isFavorite = true,
             isDetailLoaded = true,
             lastSyncedAt = 100L
         )
 
-        // Simulating filter.php response which only returns id, name, and thumb
         val summaryDto = MealDto(
             idMeal = "52844",
             strMeal = "Lasagne",
@@ -91,8 +93,18 @@ class RecipeMappersTest {
 
         assertTrue(mapped.isFavorite)
         assertTrue(mapped.isDetailLoaded)
-        assertEquals("Bake for 40 minutes.", mapped.instructions)
-        assertEquals("Italian", mapped.area)
+        assertEquals("Asse por 40 minutos.", mapped.instructions)
+        assertEquals("Italiana", mapped.area)
+        assertEquals("Massas", mapped.category)
         assertEquals(1, RecipeMappers.decodeIngredients(mapped.ingredientsJson).size)
+    }
+
+    @Test
+    fun `CulinaryPtBrLocalizer converts categories, origins, and measurements accurately`() {
+        assertEquals("Frutos do Mar", CulinaryPtBrLocalizer.translateCategory("Seafood"))
+        assertEquals("Seafood", CulinaryPtBrLocalizer.toApiCategoryKey("Frutos do Mar"))
+        assertEquals("Japonesa", CulinaryPtBrLocalizer.translateArea("Japanese"))
+        assertEquals("2 col. sopa", CulinaryPtBrLocalizer.translateMeasure("2 tbsp"))
+        assertEquals("1/2 xícara", CulinaryPtBrLocalizer.translateMeasure("1/2 cup"))
     }
 }

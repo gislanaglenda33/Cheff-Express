@@ -110,8 +110,12 @@ class OfflineFirstRecipeRepositoryTest {
             )
         }
 
-        override suspend fun filterByCategory(category: String): MealsResponseDto =
-            searchMeals("")
+        var lastFilteredCategory: String? = null
+
+        override suspend fun filterByCategory(category: String): MealsResponseDto {
+            lastFilteredCategory = category
+            return searchMeals("")
+        }
 
         override suspend fun getMealById(id: String): MealsResponseDto =
             searchMeals("")
@@ -173,6 +177,23 @@ class OfflineFirstRecipeRepositoryTest {
         repo.toggleFavorite("9001")
         val updated = repo.observeRecipeById("9001").first()
         assertFalse(updated!!.isFavorite)
+    }
+
+    @Test
+    fun `syncCategoryRecipes converts Portuguese category to English API key`() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val api = FakeMealApi()
+        val repo = OfflineFirstRecipeRepositoryImpl(
+            api = api,
+            recipeDao = InMemoryRecipeDao(),
+            categoryDao = InMemoryCategoryDao(),
+            networkMonitor = FakeNetworkMonitor(initialOnline = true),
+            ioDispatcher = dispatcher
+        )
+
+        val outcome = repo.syncCategoryRecipes("Massas")
+        assertTrue(outcome is SyncOutcome.Success)
+        assertEquals("Pasta", api.lastFilteredCategory)
     }
 
     @Test
