@@ -94,27 +94,8 @@ app/src/main/java/com/example/
 - [`TASKS.md`](TASKS.md) — Decomposição incremental das etapas de desenvolvimento.
 - [`TEST_RESULTS.md`](TEST_RESULTS.md) — Relatório detalhado dos testes automatizados executados.
 
----
-
-## 8. Como Configurar e Executar o Projeto
-
-1. Clone o repositório e abra a pasta raiz no **Android Studio** (Meerkat ou superior) ou utilize o Gradle CLI compatível com JDK 17+.
-2. Não é necessária nenhuma chave de API ou configuração em `local.properties` para a API TheMealDB.
-3. Para compilar o APK de depuração via linha de comando:
-   ```bash
-   gradle :app:assembleDebug
-   ```
-   O APK gerado estará disponível em `app/build/outputs/apk/debug/app-debug.apk`.
 
 ---
-
-## 9. Como Executar os Testes Unitários e Robolectric
-
-Execute a suíte completa de testes locais (unitários + Room in-memory + Compose UI via Robolectric):
-
-```bash
-gradle :app:testDebugUnitTest
-```
 
 ### Evidências dos Testes
 A execução completa da suíte (`gradle :app:testDebugUnitTest :app:assembleDebug`) obteve **18/18 testes aprovados (0 falhas)** e gerou o APK de depuração em `app/build/outputs/apk/debug/app-debug.apk`. Consulte o relatório detalhado em [`TEST_RESULTS.md`](TEST_RESULTS.md), cobrindo:
@@ -127,7 +108,7 @@ A execução completa da suíte (`gradle :app:testDebugUnitTest :app:assembleDeb
 
 ---
 
-## 10. Limitações Conhecidas
+## 8. Limitações Conhecidas
 
 - O conteúdo textual das receitas retornado pela API pública **TheMealDB** é originalmente em inglês, enquanto toda a interface, navegação e mensagens do aplicativo estão em português (PT-BR).
 - O timer de cozinha integrado funciona enquanto o `ViewModel` está ativo na tela de detalhes, não utilizando alarme em segundo plano (`ForegroundService`) para manter permissões mínimas.
