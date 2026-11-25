@@ -2,6 +2,8 @@ package com.example.di
 
 import androidx.room.Room
 import com.example.data.local.ChefExpressDatabase
+import com.example.data.mapper.RecipeTextTranslator
+import com.example.data.mapper.RemotePtBrTranslator
 import com.example.data.network.AndroidNetworkMonitor
 import com.example.data.remote.TheMealDbApi
 import com.example.data.repository.OfflineFirstRecipeRepositoryImpl
@@ -70,13 +72,15 @@ val dataModule = module {
     single { get<ChefExpressDatabase>().categoryDao() }
 
     single<NetworkMonitor> { AndroidNetworkMonitor(androidContext()) }
+    single<RecipeTextTranslator> { RemotePtBrTranslator(okHttpClient = get()) }
 
     single<RecipeRepository> {
         OfflineFirstRecipeRepositoryImpl(
             api = get(),
             recipeDao = get(),
             categoryDao = get(),
-            networkMonitor = get()
+            networkMonitor = get(),
+            textTranslator = get()
         )
     }
 }

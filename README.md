@@ -18,7 +18,7 @@ Na cozinha, a perda de conectividade ou oscilações de Wi-Fi frequentemente int
 - **Checklist Interativo Persistente:** Marcação de ingredientes já separados, salva localmente no banco Room por receita e preservada entre sincronizações.
 - **Favoritos (Livro de Receitas Offline):** Gerenciamento de receitas favoritas em aba dedicada, com filtro próprio por nome/categoria/origem e estado vazio ilustrado.
 - **Timer de Cozinha Integrado:** Contagem regressiva executada via Coroutines diretamente na tela de detalhes (atalhos de 5, 10, 15 min, incremento +1 min, iniciar/pausar e reiniciar).
-- **Localização em Português (PT-BR):** Toda a interface, catálogo de contingência inicial (`InitialRecipeSeed`), categorias, origens culinárias, tags, unidades de medida e ingredientes frequentes traduzidos via `CulinaryPtBrLocalizer`, com conversão reversa de categoria para consultas à API.
+- **Localização Integral em Português (PT-BR):** Toda a interface, catálogo de contingência inicial (`InitialRecipeSeed`), categorias, origens culinárias, tags, unidades de medida e ingredientes frequentes são localizados via `CulinaryPtBrLocalizer`, com tradução dinâmica automática de títulos, instruções e termos não mapeados da API via `RemotePtBrTranslator` e conversão de buscas em português para a TheMealDB.
 - **Monitoramento de Conectividade:** Banner dinâmico (`OfflineStatusBanner`) indicando Modo Offline e botão de sincronização manual na tela Explorar.
 - **Layout Adaptativo & Material 3:** Tema editorial *"Bistrô Moderno"* (claro e escuro) com fontes locais (`Playfair Display` e `Plus Jakarta Sans`), `NavigationBar` em telas compactas e `NavigationRail` em telas médias/expandidas.
 
@@ -102,7 +102,8 @@ O projeto segue rigorosamente a regra de dependência (`Presentation -> Domain <
 │       │   │   │   │   └── TheMealDbDto.kt
 │       │   │   │   ├── mapper/
 │       │   │   │   │   ├── CulinaryPtBrLocalizer.kt
-│       │   │   │   │   └── RecipeMappers.kt
+│       │   │   │   │   ├── RecipeMappers.kt
+│       │   │   │   │   └── RemotePtBrTranslator.kt
 │       │   │   │   ├── network/AndroidNetworkMonitor.kt
 │       │   │   │   └── repository/OfflineFirstRecipeRepositoryImpl.kt
 │       │   │   ├── presentation/
@@ -177,7 +178,7 @@ O projeto segue rigorosamente a regra de dependência (`Presentation -> Domain <
 
 ## 11. Resultados dos Testes e Documentação SDD
 
-- **Suíte Unitária JVM (pós-atualização PT-BR):** **16/16 testes aprovados** (0 falhas), cobrindo `RecipeUseCasesTest` (4/4), `RecipeMappersTest` (3/3), `OfflineFirstRecipeRepositoryTest` (4/4), `HomeViewModelTest` (2/2), `RecipeDetailViewModelTest` (2/2) e `ExampleUnitTest` (1/1).
+- **Suíte Unitária JVM (pós-atualização PT-BR):** **18/18 testes aprovados** (0 falhas), cobrindo `RecipeUseCasesTest` (4/4), `RecipeMappersTest` (4/4), `OfflineFirstRecipeRepositoryTest` (5/5), `HomeViewModelTest` (2/2), `RecipeDetailViewModelTest` (2/2) e `ExampleUnitTest` (1/1).
 - **Suíte Robolectric (Room + Compose UI):** Os 3 arquivos de teste Robolectric (`ChefExpressDatabaseTest`, `ChefExpressUiTest`, `ExampleRobolectricTest` — 4 casos no total) passaram na execução inicial (15/11/2026) e compilam sem erros após a atualização PT-BR (`compileDebugUnitTestKotlin`), porém a **reexecução em tempo de execução pós-PT-BR encontra-se pendente/bloqueada neste runner** por erro externo `HTTP 429` do Maven Central ao baixar `org.robolectric:android-all-instrumented:16-robolectric-13921718-i7.jar`.
 - **Relatório completo:** consulte [`TEST_RESULTS.md`](TEST_RESULTS.md).
 
@@ -191,7 +192,7 @@ Documentação complementar de SDD:
 
 ## 12. Limitações Conhecidas
 
-- Textos extensos de instruções de preparo (`strInstructions`) retornados dinamicamente pela API pública **TheMealDB** são exibidos no idioma original retornado pelo servidor (inglês), enquanto UI, seed offline, categorias, origens, tags, unidades de medida e ingredientes frequentes estão em Português (PT-BR).
+- A tradução dinâmica de títulos e instruções extensas retornadas pela API pública **TheMealDB** depende de conectividade durante a sincronização (`RemotePtBrTranslator`); uma vez sincronizadas, as receitas permanecem salvas em Português (PT-BR) no Room para leitura offline.
 - O timer de cozinha integrado funciona enquanto o `RecipeDetailViewModel` está ativo na tela de detalhes, sem serviço em segundo plano ou notificações (`ForegroundService` / `POST_NOTIFICATIONS`).
 - Fotos de receitas ainda não visualizadas quando online dependem do cache prévio do Coil para aparecerem sem internet (exibindo imagem editorial de placeholder quando indisponíveis offline).
 - A reexecução runtime da suíte Robolectric pós-PT-BR depende de rede desbloqueada para o Maven Central (bloqueio HTTP 429 registrado no contêiner).
@@ -202,7 +203,6 @@ Documentação complementar de SDD:
 ## 13. Funcionalidades Ainda Não Implementadas
 
 - **Alarme/Notificação em Segundo Plano para o Timer:** disparo sonoro ou notificação persistente ao sair da tela de detalhes ou bloquear o aparelho.
-- **Tradução Dinâmica de Instruções Extensas da API:** tradução automática de parágrafos completos de modo de preparo baixados da TheMealDB.
 - **Cobertura de Testes Complementar:** testes unitários dedicados para `FavoritesViewModel` e `AndroidNetworkMonitor`, além de testes de contrato HTTP com `MockWebServer` para `TheMealDbApi`.
 - **Sincronização em Nuvem / Contas de Usuário:** o aplicativo é estritamente local por dispositivo (Room), sem autenticação ou backup remoto entre aparelhos.
 - **Publicação Remota e Capturas Finais:** envio do histórico para repositório remoto no GitHub e preenchimento de `evidencias/` com capturas de execução real online e offline.

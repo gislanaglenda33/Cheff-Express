@@ -48,11 +48,10 @@ Este documento acompanha a decomposição incremental das etapas de desenvolvime
 ## Etapa 5: Localização PT-BR e Migração do Banco Local
 **Critério de conclusão:** Interface, seed offline e metadados culinários traduzidos para Português (PT-BR), tradução bidirecional de categorias (`PT-BR <-> API`) validada em testes unitários e versão do banco Room atualizada para suportar o novo catálogo inicial.
 
-- [x] Implementar `CulinaryPtBrLocalizer.kt` com tradução de categorias, origens culinárias, tags, ingredientes frequentes, unidades de medida e mapeamento reverso `toApiCategoryKey`.
+- [x] Implementar `CulinaryPtBrLocalizer.kt` e `RemotePtBrTranslator.kt` com tradução de categorias, origens culinárias, tags, ingredientes, medidas, títulos, instruções e busca PT-BR <-> EN.
 - [x] Atualizar `InitialRecipeSeed.kt` com 5 categorias e 5 receitas clássicas integralmente em Português (PT-BR).
-- [x] Atualizar `ChefExpressDatabase` para `version = 2` com `fallbackToDestructiveMigration(dropAllTables = true)` para renovação limpa do catálogo inicial localizado.
-- [x] Atualizar mapeamento em `RecipeMappers.kt` e `OfflineFirstRecipeRepositoryImpl.syncCategoryRecipes` para utilizar `CulinaryPtBrLocalizer`.
-- [ ] Adicionar tradução automática de textos extensos de `strInstructions` vindos da API (fora do escopo offline atual; mantido no idioma original do servidor).
+- [x] Atualizar `ChefExpressDatabase` para `version = 3` com `fallbackToDestructiveMigration(dropAllTables = true)` para renovação limpa do catálogo localizado.
+- [x] Atualizar mapeamento em `RecipeMappers.kt` e `OfflineFirstRecipeRepositoryImpl` para integrar a tradução automática PT-BR.
 
 ---
 
@@ -74,7 +73,7 @@ Este documento acompanha a decomposição incremental das etapas de desenvolvime
 - [x] Escrever testes unitários JVM (`RecipeUseCasesTest`, `RecipeMappersTest`, `OfflineFirstRecipeRepositoryTest`, `HomeViewModelTest`, `RecipeDetailViewModelTest`, `ExampleUnitTest`).
 - [x] Escrever e atualizar testes Robolectric (`ChefExpressDatabaseTest`, `ChefExpressUiTest`, `ExampleRobolectricTest`) para refletir as categorias e receitas em PT-BR.
 - [x] Executar compilação pós-PT-BR e gerar APK de depuração (`app/build/outputs/apk/debug/app-debug.apk`).
-- [x] Executar suíte unitária JVM pós-PT-BR (`16/16` testes aprovados).
+- [x] Executar suíte unitária JVM pós-PT-BR (`18/18` testes aprovados).
 - [x] Executar validação inicial dos testes Robolectric antes da localização PT-BR (15/11/2026 — `4/4` aprovados).
 - [ ] Reexecutar os 4 testes Robolectric após a atualização PT-BR (compilação `compileDebugUnitTestKotlin` aprovada em 24/11/2026, porém execução bloqueada neste runner por erro HTTP 429 do Maven Central ao baixar `android-all-instrumented:16-robolectric-13921718-i7.jar`).
 - [ ] Implementar testes unitários para `FavoritesViewModel`, `AndroidNetworkMonitor` e contrato HTTP com `MockWebServer`.
@@ -95,7 +94,7 @@ Este documento acompanha a decomposição incremental das etapas de desenvolvime
 | **2** | Configuração Base, Identidade Visual e Dependências | **Concluída** | Nenhuma |
 | **3** | Camada Domain (Modelos, Contratos e UseCases) | **Concluída e Validada (JVM)** | Nenhuma |
 | **4** | Camada Data (Room, Retrofit, Offline-First e Rede) | **Implementada (Validação parcial)** | Teste dedicado de `AndroidNetworkMonitor` e teste HTTP com `MockWebServer` |
-| **5** | Localização PT-BR e Migração Room v2 | **Implementada e Validada em Mappers/Repo** | Tradução automática de instruções extensas da API (opcional/não planejada) |
+| **5** | Localização PT-BR e Migração Room v3 | **Implementada e Validada em Mappers/Repo** | Nenhuma pendência funcional (tradução remota de instruções depende de conexão na sincronização) |
 | **6** | Camada Presentation (Compose M3 + Navigation) | **Implementada (Validação parcial)** | Refatoração opcional de `RecipeDetailScreen.kt` (< 500 linhas) e teste unitário de `FavoritesViewModel` |
-| **7.1** | Testes Automatizados e Build | **Parcialmente Validada** (Build + 16/16 JVM OK) | Reexecução runtime dos 4 testes Robolectric pós-PT-BR (bloqueio HTTP 429 Maven Central) e testes extras |
+| **7.1** | Testes Automatizados e Build | **Parcialmente Validada** (Build + 18/18 JVM OK) | Reexecução runtime dos 4 testes Robolectric pós-PT-BR (bloqueio HTTP 429 Maven Central) e testes extras |
 | **7.2** | Documentação, Evidências e Entrega Git/GitHub | **Documentação Concluída / Entrega Pendente** | Capturas reais em `evidencias/` via emulador/dispositivo, commit final e push no GitHub |

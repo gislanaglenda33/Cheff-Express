@@ -31,7 +31,12 @@ object RecipeMappers {
     fun MealDto.toEntity(
         existing: RecipeEntity? = null,
         fallbackCategory: String? = null,
-        nowMillis: Long = System.currentTimeMillis()
+        nowMillis: Long = System.currentTimeMillis(),
+        translatedName: String? = null,
+        translatedInstructions: String? = null,
+        extraIngredientTranslations: Map<String, String> = emptyMap(),
+        extraMeasureTranslations: Map<String, String> = emptyMap(),
+        extraTagTranslations: Map<String, String> = emptyMap()
     ): RecipeEntity {
         val hasFullDetails = !strInstructions.isNullOrBlank()
         val existingIngredients = existing?.let { decodeIngredients(it.ingredientsJson) }.orEmpty()
@@ -39,8 +44,18 @@ object RecipeMappers {
 
         val mergedIngredientsJson = if (hasFullDetails) {
             val mapped = extractIngredientPairs().map { (rawName, rawMeasure) ->
-                val localizedName = CulinaryPtBrLocalizer.translateIngredient(rawName)
-                val localizedMeasure = CulinaryPtBrLocalizer.translateMeasure(rawMeasure)
+                val localizedName = if (CulinaryPtBrLocalizer.hasIngredientTranslation(rawName)) {
+                    CulinaryPtBrLocalizer.translateIngredient(rawName)
+                } else {
+                    extraIngredientTranslations[rawName.trim().lowercase()]
+                        ?: CulinaryPtBrLocalizer.translateIngredient(rawName)
+                }
+                val baseMeasure = CulinaryPtBrLocalizer.translateMeasure(rawMeasure)
+                val localizedMeasure = if (baseMeasure == rawMeasure.trim()) {
+                    extraMeasureTranslations[rawMeasure.trim().lowercase()] ?: baseMeasure
+                } else {
+                    baseMeasure
+                }
                 val wasChecked = checkedLookup[localizedName.lowercase()]
                     ?: checkedLookup[rawName.lowercase()]
                     ?: false
@@ -57,7 +72,15 @@ object RecipeMappers {
 
         val resolvedTagsCsv = if (!strTags.isNullOrBlank()) {
             strTags.split(",")
-                .map { CulinaryPtBrLocalizer.translateTag(it) }
+                .map { rawTag ->
+                    val trimmed = rawTag.trim()
+                    if (CulinaryPtBrLocalizer.hasTagTranslation(trimmed)) {
+                        CulinaryPtBrLocalizer.translateTag(trimmed)
+                    } else {
+                        extraTagTranslations[trimmed.lowercase()]
+                            ?: CulinaryPtBrLocalizer.translateTag(trimmed)
+                    }
+                }
                 .filter { it.isNotBlank() }
                 .joinToString(",")
         } else {
@@ -73,12 +96,19 @@ object RecipeMappers {
             ?.let { CulinaryPtBrLocalizer.translateArea(it) }
             ?: existing?.area.orEmpty()
 
+        val resolvedName = translatedName?.takeIf { it.isNotBlank() } ?: strMeal.trim()
+        val resolvedInstructions = if (hasFullDetails) {
+            translatedInstructions?.takeIf { it.isNotBlank() } ?: strInstructions.orEmpty().trim()
+        } else {
+            existing?.instructions.orEmpty()
+        }
+
         return RecipeEntity(
             id = idMeal,
-            name = strMeal.trim(),
+            name = resolvedName,
             category = resolvedCategory,
             area = resolvedArea,
-            instructions = if (hasFullDetails) strInstructions.orEmpty().trim() else existing?.instructions.orEmpty(),
+            instructions = resolvedInstructions,
             thumbnailUrl = strMealThumb?.takeIf { it.isNotBlank() } ?: existing?.thumbnailUrl.orEmpty(),
             youtubeUrl = strYoutube?.takeIf { it.isNotBlank() } ?: existing?.youtubeUrl,
             sourceUrl = strSource?.takeIf { it.isNotBlank() } ?: existing?.sourceUrl,
@@ -119,11 +149,12 @@ object RecipeMappers {
         )
     }
 
-    fun CategoryDto.toEntity(): CategoryEntity = CategoryEntity(
+    fun CategoryDto.toEntity(translatedDescription: String? = null): CategoryEntity = CategoryEntity(
         id = idCategory,
         name = CulinaryPtBrLocalizer.translateCategory(strCategory),
         thumbnailUrl = strCategoryThumb.orEmpty(),
-        description = strCategoryDescription.orEmpty().trim()
+        description = translatedDescription?.takeIf { it.isNotBlank() }
+            ?: strCategoryDescription.orEmpty().trim()
     )
 
     fun CategoryEntity.toDomain(): Category = Category(

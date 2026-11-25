@@ -107,4 +107,12 @@ class RecipeMappersTest {
         assertEquals("2 col. sopa", CulinaryPtBrLocalizer.translateMeasure("2 tbsp"))
         assertEquals("1/2 xícara", CulinaryPtBrLocalizer.translateMeasure("1/2 cup"))
     }
+
+    @Test
+    fun `CulinaryPtBrLocalizer translates expanded ingredients, prep measures, and search queries`() {
+        assertEquals("Fermento em Pó", CulinaryPtBrLocalizer.translateIngredient("Baking Powder"))
+        assertEquals("2 col. sopa picado fino", CulinaryPtBrLocalizer.translateMeasure("2 tbsp finely chopped"))
+        assertEquals("chicken", CulinaryPtBrLocalizer.toApiSearchQuery("Frango"))
+        assertEquals("cake", CulinaryPtBrLocalizer.toApiSearchQuery("bolo"))
+    }
 }

@@ -9,7 +9,7 @@
 
 | Categoria | Quantidade | Estado Atual | Observação |
 | --- | :---: | --- | --- |
-| **Testes Unitários JVM** | 16 | **Aprovados (16/16)** | Executados com sucesso após a atualização PT-BR |
+| **Testes Unitários JVM** | 18 | **Aprovados (18/18)** | Executados com sucesso após a atualização integral PT-BR |
 | **Testes Robolectric (Room + Compose UI)** | 4 | **Não executados pós-PT-BR (Bloqueio de infraestrutura)** | Aprovados em 15/11 (pré-PT-BR); compilam pós-PT-BR, mas falharam na inicialização do runner em 24/11 por **HTTP 429** do Maven Central |
 | **Testes Instrumentados (`androidTest`) / Dispositivo** | — | **Não executados** | Ambiente sem emulador/ADB disponível |
 | **Lacunas de Cobertura Mapeadas** | — | **Pendentes de implementação** | Ausência de testes dedicados para `FavoritesViewModel`, `AndroidNetworkMonitor` e `MockWebServer` |
@@ -23,17 +23,17 @@
 gradle :app:testDebugUnitTest --tests "com.example.ExampleUnitTest" --tests "com.example.domain.*" --tests "com.example.data.mapper.*" --tests "com.example.data.repository.*" --tests "com.example.presentation.*ViewModelTest" --console=plain
 ```
 
-**Resultado:** **BUILD SUCCESSFUL** — **16 testes executados, 16 aprovados, 0 falhas**
+**Resultado:** **BUILD SUCCESSFUL** — **18 testes executados, 18 aprovados, 0 falhas**
 
 | Suíte de Teste | Camada / Escopo | Executados | Aprovados | Falhas | Status |
 | --- | --- | :---: | :---: | :---: | --- |
 | `RecipeUseCasesTest` | Domain (Casos de uso e `instructionSteps`) | 4 | 4 | 0 | Aprovado |
-| `RecipeMappersTest` | Data Mapper + `CulinaryPtBrLocalizer` | 3 | 3 | 0 | Aprovado |
-| `OfflineFirstRecipeRepositoryTest` | Data Repository + Mapeamento PT-BR -> API | 4 | 4 | 0 | Aprovado |
+| `RecipeMappersTest` | Data Mapper + `CulinaryPtBrLocalizer` | 4 | 4 | 0 | Aprovado |
+| `OfflineFirstRecipeRepositoryTest` | Data Repository + Tradução/Busca PT-BR -> API | 5 | 5 | 0 | Aprovado |
 | `HomeViewModelTest` | Presentation ViewModel (`StateFlow` / `HomeEvent`) | 2 | 2 | 0 | Aprovado |
 | `RecipeDetailViewModelTest` | Presentation ViewModel + Timer de Cozinha | 2 | 2 | 0 | Aprovado |
 | `ExampleUnitTest` | Baseline JVM | 1 | 1 | 0 | Aprovado |
-| **Total JVM** | | **16** | **16** | **0** | **Aprovado** |
+| **Total JVM** | | **18** | **18** | **0** | **Aprovado** |
 
 ---
 

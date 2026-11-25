@@ -213,4 +213,65 @@ class OfflineFirstRecipeRepositoryTest {
 
         assertNotNull(randomId)
     }
+
+    @Test
+    fun `searchAndCacheRecipes translates Portuguese query to English and translates recipe to Portuguese`() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val recipeDao = InMemoryRecipeDao()
+        var lastSearchedQuery: String? = null
+        val trackingApi = object : TheMealDbApi {
+            override suspend fun getCategories() = CategoriesResponseDto(emptyList())
+            override suspend fun searchMeals(query: String): MealsResponseDto {
+                lastSearchedQuery = query
+                return MealsResponseDto(
+                    listOf(
+                        MealDto(
+                            idMeal = "9010",
+                            strMeal = "Honey Chicken",
+                            strCategory = "Chicken",
+                            strArea = "Chinese",
+                            strInstructions = "Cook chicken with honey.",
+                            strIngredient1 = "Chicken Breast",
+                            strMeasure1 = "2 tbsp"
+                        )
+                    )
+                )
+            }
+            override suspend fun filterByCategory(category: String) = MealsResponseDto(emptyList())
+            override suspend fun getMealById(id: String) = MealsResponseDto(emptyList())
+            override suspend fun getRandomMeal() = MealsResponseDto(emptyList())
+        }
+        val fakeTranslator = object : com.example.data.mapper.RecipeTextTranslator {
+            override suspend fun translateEnToPt(text: String): String = when (text) {
+                "Honey Chicken" -> "Frango ao Mel"
+                "Cook chicken with honey." -> "Cozinhe o frango com mel."
+                else -> text
+            }
+            override suspend fun translateBatchEnToPt(texts: List<String>): List<String> =
+                texts.map { translateEnToPt(it) }
+            override suspend fun translatePtToEn(text: String): String =
+                if (text.equals("Frango", ignoreCase = true)) "chicken" else text
+        }
+        val repo = OfflineFirstRecipeRepositoryImpl(
+            api = trackingApi,
+            recipeDao = recipeDao,
+            categoryDao = InMemoryCategoryDao(),
+            networkMonitor = FakeNetworkMonitor(initialOnline = true),
+            ioDispatcher = dispatcher,
+            textTranslator = fakeTranslator
+        )
+
+        val outcome = repo.searchAndCacheRecipes("Frango")
+        val saved = repo.observeRecipeById("9010").first()
+
+        assertTrue(outcome is SyncOutcome.Success)
+        assertEquals("chicken", lastSearchedQuery)
+        assertNotNull(saved)
+        assertEquals("Frango ao Mel", saved!!.name)
+        assertEquals("Cozinhe o frango com mel.", saved.instructions)
+        assertEquals("Frango", saved.category)
+        assertEquals("Chinesa", saved.area)
+        assertEquals("Peito de Frango", saved.ingredients.first().name)
+        assertEquals("2 col. sopa", saved.ingredients.first().measure)
+    }
 }

@@ -41,7 +41,7 @@ A organização abaixo corresponde exatamente aos arquivos existentes no reposit
 │       │   │   │       └── RecipeUseCases.kt # 8 casos de uso de negócio
 │       │   │   ├── data/
 │       │   │   │   ├── local/
-│       │   │   │   │   ├── ChefExpressDatabase.kt # Banco Room (versão 2)
+│       │   │   │   │   ├── ChefExpressDatabase.kt # Banco Room (versão 3)
 │       │   │   │   │   ├── RecipeEntities.kt      # RecipeEntity, CategoryEntity, IngredientLocalModel
 │       │   │   │   │   ├── RecipeDao.kt           # RecipeDao e CategoryDao
 │       │   │   │   │   └── InitialRecipeSeed.kt   # Seed de contingência offline em PT-BR
@@ -50,7 +50,8 @@ A organização abaixo corresponde exatamente aos arquivos existentes no reposit
 │       │   │   │   │   └── TheMealDbDto.kt        # DTOs Moshi + extração de 20 ingredientes
 │       │   │   │   ├── mapper/
 │       │   │   │   │   ├── CulinaryPtBrLocalizer.kt # Dicionário e tradução bidirecional PT-BR <-> EN
-│       │   │   │   │   └── RecipeMappers.kt       # Conversões DTO <-> Entity <-> Domain e merge seguro
+│       │   │   │   │   ├── RecipeMappers.kt       # Conversões DTO <-> Entity <-> Domain e merge seguro
+│       │   │   │   │   └── RemotePtBrTranslator.kt # Tradução dinâmica PT-BR via OkHttp com cache em memória
 │       │   │   │   ├── network/
 │       │   │   │   │   └── AndroidNetworkMonitor.kt # StateFlow de conectividade via NetworkCallback
 │       │   │   │   └── repository/
@@ -157,7 +158,7 @@ A DI é estruturada com **Koin 4.0.2** no arquivo `di/AppModules.kt`, agrupando 
 
 ## 6. Estratégia de Persistência com Room
 
-- **Banco:** `ChefExpressDatabase` (`DATABASE_NAME = "chef_express.db"`), atualmente na **versão 2** (`exportSchema = false`), configurada com `.fallbackToDestructiveMigration(dropAllTables = true)` para atualização limpa do catálogo quando o seed inicial foi migrado integralmente para PT-BR.
+- **Banco:** `ChefExpressDatabase` (`DATABASE_NAME = "chef_express.db"`), atualmente na **versão 3** (`exportSchema = false`), configurada com `.fallbackToDestructiveMigration(dropAllTables = true)` para renovação limpa do catálogo localizado em PT-BR.
 - **Modelagem:**
   - `RecipeEntity` (`@Entity(tableName = "recipes")`): armazena dados completos da receita, estado `isFavorite`, flag `isDetailLoaded`, `lastSyncedAt`, `tagsCsv` e `ingredientsJson` (lista de `IngredientLocalModel` serializada com `kotlinx.serialization.json.Json`).
   - `CategoryEntity` (`@Entity(tableName = "categories")`): armazena categorias localizadas em PT-BR.
